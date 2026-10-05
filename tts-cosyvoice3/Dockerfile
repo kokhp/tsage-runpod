@@ -14,20 +14,30 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 # `from cosyvoice.cli.cosyvoice import CosyVoice3` import resolves.
 RUN git clone --depth 1 https://github.com/FunAudioLLM/CosyVoice.git /opt/CosyVoice \
  && git -C /opt/CosyVoice submodule update --init --recursive || true
-# CosyVoice's own runtime deps (hyperpyyaml, conformer, wetext, modelscope, …)
-# live in its requirements.txt. Install them so `cosyvoice.cli.cosyvoice`
-# imports cleanly at handler cold-start. Install -r first for anything the
-# repo pins, then force-add the specific modules we hit on import.
-RUN if [ -f /opt/CosyVoice/requirements.txt ]; then \
-      pip install --no-cache-dir -r /opt/CosyVoice/requirements.txt || true ; \
-    fi \
- && pip install --no-cache-dir \
-      hyperpyyaml==1.2.2 \
+# CosyVoice's own import chain (cosyvoice.cli.cosyvoice -> cli.frontend etc)
+# pulls in whisper, inflect, HyperPyYAML, conformer, modelscope, diffusers,
+# lightning, onnx, pyworld and friends. The repo's requirements.txt also
+# pins deepspeed/tensorrt/tensorboard/gradio and clobbers torch 2.4.1 with
+# 2.3.1, so we do NOT run `pip install -r`. Instead install only the modules
+# that are actually imported at handler cold-start, and keep torch pinned
+# at the base image version.
+RUN pip install --no-cache-dir \
+      openai-whisper==20231117 \
+      HyperPyYAML==1.2.3 \
       conformer==0.3.2 \
+      inflect==7.3.1 \
+      "modelscope>=1.15,<1.21" \
+      "diffusers==0.29.0" \
+      "lightning==2.2.4" \
+      "transformers==4.46.3" \
+      "onnx>=1.14,<2" \
+      "onnxruntime-gpu==1.18.0" \
+      "pyworld>=0.3,<0.4" \
+      "x-transformers>=1.30,<3" \
       "wetext>=0.0.3" \
-      modelscope \
-      "diffusers>=0.27,<0.32" \
-      lightning
+      "networkx>=3.1,<4" \
+      "gdown>=5.1,<6" \
+      "pyarrow>=15,<19"
 ENV PYTHONPATH=/opt/CosyVoice:/opt/CosyVoice/third_party/Matcha-TTS
 
 COPY handler.py /app/handler.py
