@@ -40,14 +40,34 @@ def _load():
 
 
 def _fetch_file(url_or_b64):
-    import requests
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    """Download/decode and normalise to a 16 kHz mono WAV.
+
+    NeMo parakeet-tdt expects (batch, time); multi-channel input raises
+    "Input shape expected = (batch, time) | Input shape found : (1, 2, N)".
+    Always downmix to mono + resample to 16 kHz before handing NeMo a path.
+    """
+    import requests, soundfile as sf, numpy as np
+    raw = tempfile.NamedTemporaryFile(delete=False, suffix=".bin")
     if url_or_b64.startswith("http"):
-        tmp.write(requests.get(url_or_b64, timeout=60).content)
+        raw.write(requests.get(url_or_b64, timeout=60).content)
     else:
-        tmp.write(base64.b64decode(url_or_b64))
-    tmp.close()
-    return tmp.name
+        raw.write(base64.b64decode(url_or_b64))
+    raw.close()
+    audio, sr = sf.read(raw.name, dtype="float32", always_2d=False)
+    try:
+        os.unlink(raw.name)
+    except Exception:
+        pass
+    if audio.ndim > 1:
+        audio = audio.mean(axis=1)
+    if sr != 16000:
+        import librosa
+        audio = librosa.resample(audio, orig_sr=sr, target_sr=16000)
+        sr = 16000
+    out = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    out.close()
+    sf.write(out.name, audio.astype(np.float32), sr, subtype="PCM_16")
+    return out.name
 
 
 def action_transcribe(payload):

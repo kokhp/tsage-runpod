@@ -92,7 +92,10 @@ def action_transcribe(payload):
                 "model": model_name,
             }
         else:
-            out = model(audio, generate_kwargs={"language": lang} if lang else None,
+            # transformers' pipeline iterates generate_kwargs internally, so
+            # passing None raises "'NoneType' object is not iterable". Default
+            # to {} when no language hint is supplied.
+            out = model(audio, generate_kwargs={"language": lang} if lang else {},
                         return_timestamps=timestamps)
             return {
                 "text": out["text"],

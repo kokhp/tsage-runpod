@@ -1,9 +1,12 @@
 runpod>=1.6.0
-huggingface-hub>=0.24,<1.0
+# diffusers==0.21.4 imports `cached_download` from huggingface_hub, which was
+# removed in huggingface_hub>=0.26. Cap the hub lib so pinned diffusers can
+# still import at cold start.
+huggingface-hub>=0.19,<0.26
 # Riffusion v1 community pipeline imports from
 # `diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion`, a module
-# path that was reorganised in diffusers>=0.22. Pin to 0.21.4 — the last known
-# version where that import resolves and Riffusion v1 loads cleanly.
+# path that was reorganised in diffusers>=0.22. Pin to 0.21.4 (last known
+# version where that import resolves and Riffusion v1 loads cleanly).
 diffusers==0.21.4
 transformers>=4.33,<4.46
 accelerate>=0.23,<0.30
