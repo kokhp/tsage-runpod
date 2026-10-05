@@ -1,4 +1,4 @@
-FROM runpod/pytorch:2.4.1-cuda12.1
+FROM pytorch/pytorch:2.4.1-cuda12.1-cudnn9-devel
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
