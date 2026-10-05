@@ -6,6 +6,10 @@ RUN apt-get update && apt-get install -y \
  && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/requirements.txt
+# openai-whisper 20231117 (and other legacy pkgs) use pkg_resources which
+# was removed from setuptools >= 70. Pin + add wheel_stub for nvidia stubs.
+RUN pip install --no-cache-dir --upgrade pip wheel && \
+    pip install --no-cache-dir 'setuptools<70' wheel_stub hf_transfer
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # CosyVoice repo has no proper setup.py; the `cosyvoice` package on PyPI is an
