@@ -5,6 +5,12 @@ librosa==0.10.2.post1
 soundfile==0.12.1
 numpy<2
 requests
+# Pin torchvision to the wheel matching torch==2.4.1+cu121 (base image).
+# Without this pin, nemo_toolkit[asr] pulls a torchvision built against a
+# different torch/CUDA combo and `import torchvision.extension` blows up.
+torch==2.4.1
+torchvision==0.19.1
+torchaudio==2.4.1
 nemo_toolkit[asr]>=2.0
 pytorch-lightning
 hydra-core

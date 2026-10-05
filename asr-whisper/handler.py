@@ -37,6 +37,10 @@ def _load(name):
             "large-v3": "openai/whisper-large-v3",
             "turbo": "openai/whisper-large-v3-turbo",
         }.get(name, f"openai/{name}")
+        # NOTE: transformers.pipeline() forwards `token` into model_kwargs
+        # internally, so passing it in BOTH places triggers
+        # "AutoConfig.from_pretrained() got multiple values for keyword argument 'token'".
+        # Keep it only as a top-level kwarg.
         _models[name] = pipeline(
             "automatic-speech-recognition",
             model=repo,
@@ -44,7 +48,8 @@ def _load(name):
             device="cuda",
             return_timestamps=True,
             chunk_length_s=30,
-            model_kwargs={"cache_dir": WEIGHTS_DIR, "token": os.environ.get("HF_TOKEN")},
+            token=os.environ.get("HF_TOKEN"),
+            model_kwargs={"cache_dir": WEIGHTS_DIR},
         )
     return _models[name]
 

@@ -35,6 +35,19 @@ def _pack_wav(audio, sr):
     return base64.b64encode(buf.getvalue()).decode()
 
 
+def _speakers_as_str_dict(spk2id):
+    """MeloTTS's hps.data.spk2id can be an HParams/dict with non-string keys
+    (ints or numpy scalars) depending on the config shipped with each model.
+    JSON/msgpack serialisers reject non-string dict keys ("attribute name must
+    be string, not 'int'"), so coerce everything to {str: int} up front."""
+    try:
+        items = spk2id.items()
+    except AttributeError:
+        # HParams exposes attributes rather than mapping protocol
+        items = ((k, getattr(spk2id, k)) for k in vars(spk2id))
+    return {str(k): int(v) for k, v in items}
+
+
 def action_synthesize(payload):
     text = payload["text"]
     lang = payload.get("lang", "EN").upper()
@@ -42,9 +55,10 @@ def action_synthesize(payload):
     speed = float(payload.get("speed", 1.0))
 
     model = _load(lang)
-    speakers = model.hps.data.spk2id
+    speakers = _speakers_as_str_dict(model.hps.data.spk2id)
     if not speaker_id:
         speaker_id = next(iter(speakers))
+    speaker_id = str(speaker_id)
     spk = speakers.get(speaker_id)
     if spk is None:
         return {"error": f"unknown speaker_id {speaker_id}", "valid": list(speakers)}
@@ -64,9 +78,10 @@ def action_list_voices(payload):
     lang = payload.get("lang", "EN").upper()
     try:
         model = _load(lang)
-        return {"lang": lang, "voices": list(model.hps.data.spk2id)}
+        speakers = _speakers_as_str_dict(model.hps.data.spk2id)
+        return {"lang": lang, "voices": list(speakers.keys()), "speakers": speakers}
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": str(e), "trace": traceback.format_exc()}
 
 
 ACTIONS = {"synthesize": action_synthesize, "list_voices": action_list_voices}

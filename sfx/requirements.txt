@@ -1,8 +1,12 @@
 runpod>=1.6.0
 huggingface-hub>=0.24,<1.0
-transformers>=4.46,<5.0
-diffusers>=0.30
-accelerate>=0.30
+# Riffusion v1 community pipeline imports from
+# `diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion`, a module
+# path that was reorganised in diffusers>=0.22. Pin to 0.21.4 — the last known
+# version where that import resolves and Riffusion v1 loads cleanly.
+diffusers==0.21.4
+transformers>=4.33,<4.46
+accelerate>=0.23,<0.30
 librosa==0.10.2.post1
 soundfile==0.12.1
 numpy<2
