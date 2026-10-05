@@ -1,0 +1,10 @@
+runpod>=1.6.0
+huggingface-hub>=0.24,<1.0
+numpy<2
+librosa==0.10.2.post1
+soundfile==0.12.1
+requests
+bs-roformer>=0.4
+einops
+beartype
+rotary-embedding-torch

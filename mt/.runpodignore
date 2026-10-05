@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+.venv/
+.env
+*.log
+*.wav
+*.mp3
+*.flac
+test_*.py
+tests/
+.pytest_cache/
+.DS_Store

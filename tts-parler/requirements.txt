@@ -1,0 +1,11 @@
+runpod>=1.6.0
+huggingface-hub>=0.24,<1.0
+transformers>=4.46,<5.0
+accelerate>=0.30
+sentencepiece
+librosa==0.10.2.post1
+soundfile==0.12.1
+numpy<2
+scipy
+descript-audio-codec
+protobuf

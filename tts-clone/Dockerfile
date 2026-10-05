@@ -1,0 +1,29 @@
+FROM runpod/pytorch:2.4.1-cuda12.1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    ffmpeg git libsndfile1 build-essential \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# CosyVoice2 ships as a repo rather than a pure pypi package in most releases;
+# fall back to installing from source if the pypi package name is unavailable.
+RUN pip install --no-cache-dir \
+      "cosyvoice @ git+https://github.com/FunAudioLLM/CosyVoice.git@main" \
+      || pip install --no-cache-dir cosyvoice
+
+# OpenVoice V2 Python API
+RUN pip install --no-cache-dir \
+      "openvoice @ git+https://github.com/myshell-ai/OpenVoice.git@main" \
+      || pip install --no-cache-dir openvoice-cli
+
+COPY handler.py /app/handler.py
+
+ENV PYTHONUNBUFFERED=1 \
+    HF_HOME=/runpod-volume/hf \
+    TORCH_HOME=/runpod-volume/torch
+
+CMD ["python", "-u", "/app/handler.py"]

@@ -1,0 +1,10 @@
+runpod>=1.6.0
+huggingface-hub>=0.24,<1.0
+transformers==4.46.3
+accelerate>=0.30
+sentencepiece
+bitsandbytes>=0.44
+numpy<2
+scipy
+requests
+fasttext==0.9.3
